@@ -17,7 +17,7 @@ WORKDIR /app
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=1
 COPY --chown=node:node .npmrc package.json package-lock.json ./
 RUN npm ci
-COPY . .
+COPY --chown=node:node . .
 RUN npm run build
 RUN npm prune --omit=dev
 COPY --chown=node:node --from=build_healthcheck /app/extra/healthcheck /app/extra/healthcheck
