@@ -391,11 +391,17 @@
                     <div v-else-if="partialDown">
                         <font-awesome-icon icon="exclamation-circle" class="warning" />
                         {{ $t("Partially Degraded Service") }}
+                        <div v-if="degradedMonitorNames" class="degraded-monitors-list mt-2">
+                            {{ $t("Affected Monitors") }}: {{ degradedMonitorNames }}
+                        </div>
                     </div>
 
                     <div v-else-if="allDown">
                         <font-awesome-icon icon="times-circle" class="danger" />
                         {{ $t("Degraded Service") }}
+                        <div v-if="degradedMonitorNames" class="degraded-monitors-list mt-2">
+                            {{ $t("Affected Monitors") }}: {{ degradedMonitorNames }}
+                        </div>
                     </div>
 
                     <div v-else-if="isMaintenance">
@@ -629,6 +635,8 @@ import {
     STATUS_PAGE_MAINTENANCE,
     STATUS_PAGE_PARTIAL_DOWN,
     UP,
+    DOWN,
+    PENDING,
     MAINTENANCE,
 } from "../util.ts";
 import Tag from "../components/Tag.vue";
@@ -815,6 +823,27 @@ export default {
             }
 
             return status;
+        },
+
+        /**
+         * Get the names of the monitors that are degraded
+         * @returns {string} Comma separated list of monitor names
+         */
+        degradedMonitorNames() {
+            let list = [];
+            for (let id in this.$root.publicLastHeartbeatList) {
+                let beat = this.$root.publicLastHeartbeatList[id];
+                if (beat.status === DOWN || beat.status === PENDING) {
+                    for (let group of this.$root.publicGroupList) {
+                        let m = group.monitorList.find((m) => m.id == id);
+                        if (m) {
+                            list.push(m.name);
+                            break;
+                        }
+                    }
+                }
+            }
+            return [...new Set(list)].join(", ");
         },
 
         allUp() {
@@ -1781,5 +1810,11 @@ footer {
     .incident-list-box {
         padding: 0;
     }
+}
+
+.degraded-monitors-list {
+    font-size: 0.85rem;
+    opacity: 0.9;
+    font-weight: normal;
 }
 </style>
